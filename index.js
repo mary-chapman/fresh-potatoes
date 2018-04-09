@@ -98,50 +98,12 @@ function getFilmRecommendations(req, res) {
       }
       return childFilms
     })
-    .then(x => console.log(x))
+    .then(childFilms => {
+      request(`http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${childFilms.ids}`, (error, response, body) => {
+        var parsed = JSON.parse(body)
+        console.log(parsed)
+      })
+    })
   })
 }
-
-//HELPER FUNCTIONS:
-
-function queryForChildFilms(parentFilm) {
-  var returnObject = [];
-  var parentReleaseDate = parentFilm.dataValues.release_date;
-  var releaseYearPlus15 = Number(parentReleaseDate.slice(0, 4)) + 15;
-  var releaseYearMinus15 = Number(parentReleaseDate.slice(0, 4) - 15);
-  var releaseMonthAndDay = parentReleaseDate.slice(4);
-  Films.findAll({
-    include: [{
-      model: Genres,
-      required: true
-    }],
-    release_date: {
-      $lte: releaseYearPlus15 + releaseMonthAndDay,
-      $gte: releaseYearMinus15 + releaseMonthAndDay
-    }
-  })
-
-}
-      // //parses throgh parent film release date for release date query
-      // var parentReleaseDate = parentFilm.dataValues.release_date;
-      // var releaseYearPlus15 = Number(parentReleaseDate.slice(0, 4)) + 15;
-      // var releaseYearMinus15 = Number(parentReleaseDate.slice(0, 4) - 15);
-      // var releaseMonthAndDay = parentReleaseDate.slice(4);
-      // Films.findAll({
-      //   include: [{
-      //     model: Genres,
-      //     required: true
-      //   }],
-      //   where: {
-      //     genre_id: parentFilm.dataValues.genre_id,
-      //     release_date: {
-      //       $lte: releaseYearPlus15 + releaseMonthAndDay,
-      //       $gte: releaseYearMinus15 + releaseMonthAndDay
-      //     }
-      //   }
-      // })
-
-      //********* */
-
-
 module.exports = app;
