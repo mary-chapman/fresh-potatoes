@@ -102,6 +102,17 @@ function getFilmRecommendations(req, res) {
       request(`http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${childFilms.ids}`, (error, response, body) => {
         var parsed = JSON.parse(body)
         console.log(parsed)
+        parsed.forEach(film => {
+          var reviewCount = film.reviews.length;
+          if (reviewCount >= 5) {
+            var ratings = film.reviews.map(review => review.rating);
+            var sum = ratings.reduce((a, b) => a + b);
+            var average = Number((sum / reviewCount).toFixed(2));
+            if (average > 4.0 && reviewCount >= 5) {
+              console.log(film.film_id)
+            }
+          }
+        }) //forEach end
       })
     })
   })
