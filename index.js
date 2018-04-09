@@ -63,9 +63,10 @@ app.get('/films/:id/recommendations', getFilmRecommendations);
 
 //ROUTE HANDLERS
 function getFilmRecommendations(req, res) {
-  var childFilms = {
-    ids: ''
-  }
+  var responseObject = {recommendations: []}
+      childFilms = {
+        ids: ''
+      }
   Films.findOne({where: {id: req.params.id}})
   .then(parentFilm => {
     var parentReleaseDate = parentFilm.dataValues.release_date;
@@ -101,7 +102,6 @@ function getFilmRecommendations(req, res) {
     .then(childFilms => {
       request(`http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${childFilms.ids}`, (error, response, body) => {
         var parsed = JSON.parse(body)
-        console.log(parsed)
         parsed.forEach(film => {
           var reviewCount = film.reviews.length;
           if (reviewCount >= 5) {
@@ -109,10 +109,20 @@ function getFilmRecommendations(req, res) {
             var sum = ratings.reduce((a, b) => a + b);
             var average = Number((sum / reviewCount).toFixed(2));
             if (average > 4.0 && reviewCount >= 5) {
-              console.log(film.film_id)
+              responseObject.recommendations.push(                    
+                { 
+                    id: film.film_id,
+                    title: childFilms[film.film_id].title,
+                    releaseDate: childFilms[film.film_id].releaseDate,
+                    genre: childFilms[film.film_id].genre.name,
+                    averageRating: average,
+                    reviews: reviewCount
+                });
             }
           }
         }) //forEach end
+        console.log(responseObject)
+        res.status.send(responseObject)
       })
     })
   })
