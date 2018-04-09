@@ -84,7 +84,7 @@ function getFilmRecommendations(req, res) {
     };
 
     if (queryData.offset) {
-      if (number.test(queryData.limit)) responseObject.meta.offset = Number(queryData.offset);
+      if (number.test(queryData.offset)) responseObject.meta.offset = Number(queryData.offset);
       else {
           res.statusCode = 422;
           res.send({ message: `${res.statusCode} error: invalid parameters`});
@@ -93,7 +93,7 @@ function getFilmRecommendations(req, res) {
       responseObject.meta.offset = 0;
     };
 
-    console.log(responseObject);
+    console.log(queryData.offset);
 
   Films.findOne({where: {id: req.params.id}})
   .then(parentFilm => {
@@ -149,7 +149,7 @@ function getFilmRecommendations(req, res) {
             }
           }
         }) //forEach end
-        //console.log(responseObject)
+        responseObject.recommendations = responseObject.recommendations.slice(responseObject.meta.offset, responseObject.meta.offset + responseObject.meta.limit);        
         res.status(200).send(responseObject)
       })
     })
