@@ -63,6 +63,9 @@ app.get('/films/:id/recommendations', getFilmRecommendations);
 
 //ROUTE HANDLERS
 function getFilmRecommendations(req, res) {
+  var childFilms = {
+    ids: ''
+  }
   Films.findOne({where: {id: req.params.id}})
   .then(parentFilm => {
     var parentReleaseDate = parentFilm.dataValues.release_date;
@@ -81,8 +84,21 @@ function getFilmRecommendations(req, res) {
           $gte: releaseYearMinus15 + releaseMonthAndDay
         }
       }
-    }) //findAll end
-    .then(films => films.forEach(film => console.log(film.dataValues.title)))
+    }).then(films => {
+      // creates a hash lookup to be later used to build the return object
+      for (film of films) {
+        childFilms[film.dataValues.id] = {
+          title: film.dataValues.title,
+          releaseDate: film.dataValues.release_date,
+          genre: film.dataValues.genre
+        };
+        //build string to be used in third party api function
+        if (childFilms.ids === '') childFilms.ids += film.dataValues.id
+        else childFilms.ids += `,${film.dataValues.id}`
+      }
+      return childFilms
+    })
+    .then(x => console.log(x))
   })
 }
 
