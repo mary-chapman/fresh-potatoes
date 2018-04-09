@@ -73,6 +73,10 @@ function getFilmRecommendations(req, res) {
 
     console.log(queryData)
     var number = /^\d+$/;
+    if (!number.test(req.params.id)) {
+      res.statusCode = 422;
+      res.send({ message: `${res.statusCode} error: invalid parameters`});
+    };
     if (queryData.limit) {
       if (number.test(queryData.limit)) responseObject.meta.limit = Number(queryData.limit);
       else {
