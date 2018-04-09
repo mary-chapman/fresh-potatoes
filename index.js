@@ -5,7 +5,7 @@ const sqlite = require('sqlite'),
       url = require('url'),
       app = express();
 
-const { PORT=3000, NODE_ENV='development', DB_PATH='./db/database.db' } = process.env;
+const {PORT=3000, NODE_ENV='development', DB_PATH='./db/database.db'} = process.env;
 
 // START SERVER
 Promise.resolve()
