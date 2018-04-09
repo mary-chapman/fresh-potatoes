@@ -61,4 +61,9 @@ Films.belongsTo(Genres, {foreignKey: 'genre_id', targetKey: 'id'});
 // ROUTES
 app.get('/films/:id/recommendations', getFilmRecommendations);
 
+//ROUTE HANDLERS
+function getFilmRecommendations(req, res) {
+  Films.findOne({where: {id: req.params.id}}).then(parentFilm => console.log(parentFilm.dataValues.title))
+}
+
 module.exports = app;
