@@ -2,6 +2,7 @@ const sqlite = require('sqlite'),
       Sequelize = require('sequelize'),
       request = require('request'),
       express = require('express'),
+      url = require('url'),
       app = express();
 
 const { PORT=3000, NODE_ENV='development', DB_PATH='./db/database.db' } = process.env;
@@ -63,10 +64,37 @@ app.get('/films/:id/recommendations', getFilmRecommendations);
 
 //ROUTE HANDLERS
 function getFilmRecommendations(req, res) {
-  var responseObject = {recommendations: []}
+  var queryData = url.parse(req.url, true).query;
+
+      responseObject = {recommendations: [], meta: { limit: 10, offset: 0 }},
       childFilms = {
         ids: ''
-      }
+      };
+
+    console.log(queryData)
+    var number = /^\d+$/;
+    if (queryData.limit) {
+      if (number.test(queryData.limit)) responseObject.meta.limit = Number(queryData.limit);
+      else {
+          res.statusCode = 422;
+          res.send({ message: `${res.statusCode} error: invalid parameters`});
+      };
+    } else {
+      responseObject.meta.limit = 10;
+    };
+
+    if (queryData.offset) {
+      if (number.test(queryData.limit)) responseObject.meta.offset = Number(queryData.offset);
+      else {
+          res.statusCode = 422;
+          res.send({ message: `${res.statusCode} error: invalid parameters`});
+      };
+    } else {
+      responseObject.meta.offset = 0;
+    };
+
+    console.log(responseObject);
+
   Films.findOne({where: {id: req.params.id}})
   .then(parentFilm => {
     var parentReleaseDate = parentFilm.dataValues.release_date;
@@ -121,8 +149,8 @@ function getFilmRecommendations(req, res) {
             }
           }
         }) //forEach end
-        console.log(responseObject)
-        res.status.send(responseObject)
+        //console.log(responseObject)
+        res.status(200).send(responseObject)
       })
     })
   })
