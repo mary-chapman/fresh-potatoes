@@ -26,7 +26,8 @@ const sequelize = new Sequelize('database', 'username', 'password', {
     multipleStatements: true
   },
   storage: DB_PATH,
-  operatorsAliases: false
+  operatorsAliases: false,
+  logging: false
 });
 
 //SEQUELIZE MODELS 
@@ -61,8 +62,13 @@ Films.belongsTo(Genres, {foreignKey: 'genre_id', targetKey: 'id'});
 
 // ROUTES
 app.get('/films/:id/recommendations', getFilmRecommendations);
+app.get('*', uknownRoute);
 
 //ROUTE HANDLERS
+function uknownRoute(req, res)  {
+  res.status(404).send({message: `${res.statusCode} error: route uknown`});
+};
+
 function getFilmRecommendations(req, res) {
   var queryData = url.parse(req.url, true).query;
 
@@ -71,12 +77,11 @@ function getFilmRecommendations(req, res) {
         ids: ''
       };
 
-    console.log(queryData)
     var number = /^\d+$/;
-    if (!number.test(req.params.id)) {
-      res.statusCode = 422;
-      res.send({ message: `${res.statusCode} error: invalid parameters`});
-    };
+      if (!number.test(req.params.id)) {
+        res.statusCode = 422;
+        res.send({ message: `${res.statusCode} error: invalid parameters`});
+      };
     if (queryData.limit) {
       if (number.test(queryData.limit)) responseObject.meta.limit = Number(queryData.limit);
       else {
@@ -89,7 +94,7 @@ function getFilmRecommendations(req, res) {
 
     if (queryData.offset) {
       if (number.test(queryData.offset)) responseObject.meta.offset = Number(queryData.offset);
-      else {
+      else {  
           res.statusCode = 422;
           res.send({ message: `${res.statusCode} error: invalid parameters`});
       };
@@ -97,14 +102,18 @@ function getFilmRecommendations(req, res) {
       responseObject.meta.offset = 0;
     };
 
-    console.log(queryData.offset);
+    
 
   Films.findOne({where: {id: req.params.id}})
   .then(parentFilm => {
+    if (parentFilm === null) {
+      return
+    }
     var parentReleaseDate = parentFilm.dataValues.release_date;
     var releaseYearPlus15 = Number(parentReleaseDate.slice(0, 4)) + 15;
     var releaseYearMinus15 = Number(parentReleaseDate.slice(0, 4) - 15);
     var releaseMonthAndDay = parentReleaseDate.slice(4);
+    
     Films.findAll({
       include: [{
         model: Genres,
