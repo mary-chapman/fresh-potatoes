@@ -15,7 +15,6 @@ Promise.resolve()
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
   dialect: 'sqlite',
-
   pool: {
     max: 5,
     min: 0,
@@ -27,15 +26,39 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   },
   storage: DB_PATH,
   operatorsAliases: false
-})
+});
 
+//SEQUELIZE MODELS 
+const Genres = sequelize.define('genres', {
+  'id': {
+    type: Sequelize.INTEGER,
+    primaryKey: true
+  },
+  'name': {
+    type: Sequelize.STRING
+  }
+}, {
+    timestamps: false
+});
+
+const Films = sequelize.define('films', {
+  'title' : {
+    type: Sequelize.STRING
+  },
+  'genre_id': {
+    type: Sequelize.INTEGER
+  },
+  'release_date': {
+    type: Sequelize.STRING
+  }
+}, {
+    timestamps: false
+});
+
+//to connect the genre table to the film fable:
+Films.belongsTo(Genres, {foreignKey: 'genre_id', targetKey: 'id'});
 
 // ROUTES
 app.get('/films/:id/recommendations', getFilmRecommendations);
-
-// ROUTE HANDLER
-function getFilmRecommendations(req, res) {
-  res.status(500).send('Not Implemented');
-}
 
 module.exports = app;
