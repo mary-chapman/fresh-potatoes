@@ -10,7 +10,7 @@ const { PORT=3000, NODE_ENV='development', DB_PATH='./db/database.db' } = proces
 // START SERVER
 Promise.resolve()
   .then(() => app.listen(PORT, () => console.log(`App listening on port ${PORT}`)))
-  .catch((err) => { if (NODE_ENV === 'development') console.error(err.stack); });
+  .catch((err) => {if (NODE_ENV === 'development') console.error(err.stack);});
 
 // SEQUELIZE CONNECT 
 const sequelize = new Sequelize('database', 'username', 'password', {
@@ -71,17 +71,17 @@ function uknownRoute(req, res)  {
 
 function getFilmRecommendations(req, res) {
   var queryData = url.parse(req.url, true).query;
-
       responseObject = {recommendations: [], meta: { limit: 10, offset: 0 }},
       childFilms = {
         ids: ''
       };
-
+    //validation for id parameter 
     var number = /^\d+$/;
       if (!number.test(req.params.id)) {
         res.statusCode = 422;
         res.send({ message: `${res.statusCode} error: invalid parameters`});
       };
+    // validates and sets offset and limit
     if (queryData.limit) {
       if (number.test(queryData.limit)) responseObject.meta.limit = Number(queryData.limit);
       else {
@@ -91,7 +91,6 @@ function getFilmRecommendations(req, res) {
     } else {
       responseObject.meta.limit = 10;
     };
-
     if (queryData.offset) {
       if (number.test(queryData.offset)) responseObject.meta.offset = Number(queryData.offset);
       else {  
@@ -101,9 +100,7 @@ function getFilmRecommendations(req, res) {
     } else {
       responseObject.meta.offset = 0;
     };
-
-    
-
+  //queries the daatabase for the parent film id
   Films.findOne({where: {id: req.params.id}})
   .then(parentFilm => {
     if (parentFilm === null) {
@@ -113,7 +110,7 @@ function getFilmRecommendations(req, res) {
     var releaseYearPlus15 = Number(parentReleaseDate.slice(0, 4)) + 15;
     var releaseYearMinus15 = Number(parentReleaseDate.slice(0, 4) - 15);
     var releaseMonthAndDay = parentReleaseDate.slice(4);
-    
+    //queries the database for the films based on the parent film
     Films.findAll({
       include: [{
         model: Genres,
@@ -140,6 +137,7 @@ function getFilmRecommendations(req, res) {
       }
       return childFilms
     })
+    // retrieves info from third party api based off of the child films and builds response object
     .then(childFilms => {
       request(`http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${childFilms.ids}`, (error, response, body) => {
         var parsed = JSON.parse(body)
@@ -162,10 +160,12 @@ function getFilmRecommendations(req, res) {
             }
           }
         }) //forEach end
+        // changes the response object based on the offset and limit keys 
         responseObject.recommendations = responseObject.recommendations.slice(responseObject.meta.offset, responseObject.meta.offset + responseObject.meta.limit);        
+        res.setHeader('Content-Type', 'application/json');
         res.status(200).send(responseObject)
-      })
-    })
-  })
-}
+      });
+    });
+  });
+};
 module.exports = app;
